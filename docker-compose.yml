@@ -1,0 +1,39 @@
+version: '3.6'
+
+services:
+    db:
+      image: postgres
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER:-postgres}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-_StrongPass1}
+        POSTGRES_DB: tender_data
+      volumes:
+        - ./.pg-data:/var/lib/postgresql/data
+        - ./init-tender-data-db.sql:/docker-entrypoint-initdb.d/init.sql
+      ports:
+        - "5432:5432"
+      restart: always
+
+    redis:
+      image: redis:7.4.1
+      volumes:
+        - ./redis-data:/data
+      command: ["redis-server", "--append-only", "yes"]
+      restart: always
+
+    new-tenders-queue:
+      platform: linux/amd64
+      restart: always
+      build: new-tender-parse
+      depends_on:
+        - db
+
+    tender-parse_worker:
+      platform: linux/amd64
+      restart: always
+      build: completed-tender-parse
+      depends_on:
+        - db
+    
+volumes: 
+  pgdata:
