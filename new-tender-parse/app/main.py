@@ -3,10 +3,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import time
-import requests
-from bs4 import BeautifulSoup
 import psycopg2
-import config;
+import config
 
 # Wait for any of given elements to become visible and return the first (and only at that time) visible element. xpathSelectors is normally separated with | character
 def wait_xpath_appear(driver, xpathSelectors, timeout = None):
@@ -84,13 +82,23 @@ def import_page(driver, conn, requests_cookies):
 if __name__ == "__main__":
     # Initialize Selenium Chrome driver
     options = webdriver.ChromeOptions()
-    # options.add_argument("--headless=new")
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument('--remote-debugging-pipe')
-    options.add_argument(f"--user-data-dir={config.CHROME_USER_DATA_FOLDER}")
-    options.add_argument(f"--profile-directory={config.CHROME_PROFILE_NAME}")
-    driver = webdriver.Chrome(options=options)
+    options.add_argument("--remote-debugging-pipe")
+    options.add_argument("--disable-software-rasterizer")
+    options.add_argument("--disable-infobars")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-extensions")
+    #options.add_argument(f"--user-data-dir={config.CHROME_USER_DATA_FOLDER}")
+    #options.add_argument(f"--profile-directory={config.CHROME_PROFILE_NAME}")
+    #driver = webdriver.Chrome(options=options)
+    
+    options.set_capability('browserless:token', '35c829e7-df4a-48c4-9d1f-f5939b221ae8')
+    driver = webdriver.Remote(
+        command_executor='http://browserless:3000/webdriver',
+        options=options
+    )
 
     # Open Advanced Search page
     driver.get("https://rostender.info/extsearch/advanced")

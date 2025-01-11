@@ -1,39 +1,62 @@
-version: '3.6'
-
 services:
     db:
-      image: postgres
+      image: postgres:latest
       environment:
-        POSTGRES_USER: ${POSTGRES_USER:-postgres}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-_StrongPass1}
-        POSTGRES_DB: tender_data
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: i54_4dsF
       volumes:
         - ./.pg-data:/var/lib/postgresql/data
         - ./init-tender-data-db.sql:/docker-entrypoint-initdb.d/init.sql
       ports:
         - "5432:5432"
+      healthcheck:
+        test: "pg_isready -U postgres"
+        interval: 5s
+        timeout: 5s
+        retries: 5
       restart: always
 
     redis:
-      image: redis:7.4.1
+      image: redis:latest
+      ports:
+        - "6379:6379"
       volumes:
-        - ./redis-data:/data
-      command: ["redis-server", "--append-only", "yes"]
+        - ./.redis-data:/data
+      command: "redis-server --dir /data --requirepass _rds054E --save 60 1 --appendonly yes"
+      healthcheck:
+        test: ["CMD", "redis-cli", "-a", "_rds054E", "ping"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
       restart: always
 
-    new-tenders-queue:
+    browserless:
+      image: browserless/chrome:latest
       platform: linux/amd64
+      environment:
+        - DEBUG=browserless:*
+        - MAX_CONCURRENT_SESSIONS=1
+        - CONNECTION_TIMEOUT=60000
+        - MAX_QUEUE_LENGTH=20
+        - PREBOOT_CHROME=true
+        - DEMO_MODE=false
+        - HOST=0.0.0.0
+        - ENABLE_DEBUGGER=false
+        - TOKEN=35c829e7-df4a-48c4-9d1f-f5939b221ae8
+        - PORT=3000
+        - WORKSPACE_DELETE_EXPIRED=true
       restart: always
-      build: new-tender-parse
-      depends_on:
-        - db
+      ports:
+        - "3000:3000"
 
-    tender-parse_worker:
+    parse:
       platform: linux/amd64
       restart: always
-      build: completed-tender-parse
+      build: ./new-tender-parse
       depends_on:
-        - db
-    
-volumes: 
-  pgdata:
+        db:
+          condition: service_healthy
+        redis:
+          condition: service_healthy
+        browserless:
+          condition: service_started

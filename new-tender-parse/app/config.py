@@ -6,7 +6,7 @@ TENDER_DB_PASS = '_StrongPass1'
 TENDER_DB_NAME = 'tender_data'
 
 # Parser configuration
-ROSTENDER_USER = 's3m3np0p'
-ROSTENDER_PASS = 'CDTWdhip'
+ROSTENDER_USER = 'cerweter'
+ROSTENDER_PASS = '3EMNPQXq'
 CHROME_USER_DATA_FOLDER = '/Users/andrel/Library/Application Support/Google/Chrome/'
 CHROME_PROFILE_NAME = 'Profile 2' # Chrome profile to use (to skip login if already logged in)

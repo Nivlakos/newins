@@ -1,15 +1,10 @@
-FROM python:3.12
+FROM python:3
 
-ENV APP_HOME /app
+WORKDIR /usr/src/app
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt
+COPY . .
 
-WORKDIR $APP_HOME
-
-COPY ./app $APP_HOME
-
-CMD ["python3", "main.py"]
+CMD [ "python", "./app/main.py" ]

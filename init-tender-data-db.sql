@@ -53,8 +53,8 @@ CREATE TABLE tender (
     -- Links to next and previous versions ID of the same tender, for keeping all versions of updated tenders
     next_version_tender_id bigint,
     prev_version_tender_id bigint,
-    
-    CONSTRAINT fk_tender_request FOREIGN KEY(region_id, industry_id) REFERENCES request(region_id, industry_id)
+
+    CONSTRAINT fk_tender_request FOREIGN KEY(region_id, industry_id) REFERENCES request(region_id, industry_id),
     CONSTRAINT fk_tender_next_tender FOREIGN KEY(next_version_tender_id) REFERENCES tender(id),
     CONSTRAINT fk_tender_prev_tender FOREIGN KEY(prev_version_tender_id) REFERENCES tender(id)
 );
