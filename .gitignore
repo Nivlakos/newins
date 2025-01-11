@@ -1,4 +1,4 @@
-./.pg-data
-./.redis-data
+.pg-data
+.redis-data
 .DS_Store
 __pycache__
