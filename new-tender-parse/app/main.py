@@ -82,14 +82,22 @@ def import_page(driver, conn, requests_cookies):
 if __name__ == "__main__":
     # Initialize Selenium Chrome driver
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--remote-debugging-pipe")
-    options.add_argument("--disable-software-rasterizer")
-    options.add_argument("--disable-infobars")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-background-timer-throttling");
+    options.add_argument("--disable-backgrounding-occluded-windows");
+    options.add_argument("--disable-breakpad");
+    options.add_argument("--disable-component-extensions-with-background-pages");
+    options.add_argument("--disable-dev-shm-usage");
+    options.add_argument("--disable-extensions");
+    options.add_argument("--disable-features=TranslateUI,BlinkGenPropertyTrees");
+    options.add_argument("--disable-ipc-flooding-protection");
+    options.add_argument("--disable-renderer-backgrounding");
+    options.add_argument("--enable-features=NetworkService,NetworkServiceInProcess");
+    options.add_argument("--force-color-profile=srgb");
+    options.add_argument("--hide-scrollbars");
+    options.add_argument("--metrics-recording-only");
+    options.add_argument("--mute-audio");
+    options.add_argument("--headless");
+    options.add_argument("--no-sandbox");
     #options.add_argument(f"--user-data-dir={config.CHROME_USER_DATA_FOLDER}")
     #options.add_argument(f"--profile-directory={config.CHROME_PROFILE_NAME}")
     #driver = webdriver.Chrome(options=options)
@@ -109,18 +117,18 @@ if __name__ == "__main__":
     # if Login link is visible, log in
     loginLinkElements = driver.find_elements(By.CLASS_NAME, "header-login__signin")
     if len(loginLinkElements) > 0:
-        loginLinkElements[0].click()
+        driver.get("https://rostender.info/login")
         wait_css_appear(driver, "#username")
         driver.find_element(By.ID, "username").send_keys(config.ROSTENDER_USER)
         driver.find_element(By.ID, "password").send_keys(config.ROSTENDER_PASS)
         driver.find_element(By.NAME, "login-button").click()
 
     # Pass selenium cookies to requests (for comparing import speed with requests library)
-    cookies = driver.get_cookies()
-    requests_cookies = {}
-    requests_cookies['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15'
-    for c in cookies:
-        requests_cookies[c['name']] = c['value']
+    #cookies = driver.get_cookies()
+    #requests_cookies = {}
+    #requests_cookies['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15'
+    #for c in cookies:
+    #    requests_cookies[c['name']] = c['value']
 
     # Open DB connection
     conn = psycopg2.connect(
@@ -135,7 +143,7 @@ if __name__ == "__main__":
         # Get requests list (region+industry to import data for)
         cur = conn.cursor()
         with cur:
-            cur.execute("SELECT id, server, cost FROM servers;")
+            cur.execute("SELECT region_id, industry_id FROM request order by priority asc, created_timestamp desc;")
             rows = cur.fetchall()
         
         for row in rows:

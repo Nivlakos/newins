@@ -1,9 +1,9 @@
 # Tender database connection string
-TENDER_DB_SERVER = 'localhost'
+TENDER_DB_SERVER = 'db'
 TENDER_DB_PORT = 5432
 TENDER_DB_USER = 'postgres'
-TENDER_DB_PASS = '_StrongPass1'
-TENDER_DB_NAME = 'tender_data'
+TENDER_DB_PASS = 'i54_4dsF'
+TENDER_DB_NAME = 'postgres'
 
 # Parser configuration
 ROSTENDER_USER = 'cerweter'
