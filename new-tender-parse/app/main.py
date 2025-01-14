@@ -122,6 +122,8 @@ if __name__ == "__main__":
         driver.find_element(By.ID, "username").send_keys(config.ROSTENDER_USER)
         driver.find_element(By.ID, "password").send_keys(config.ROSTENDER_PASS)
         driver.find_element(By.NAME, "login-button").click()
+        # in case login credentials are wrong, the script will fail on the following line in 60 seconds and the micro-service will be restarted (with 'restart: always' in docker-compose.yml)
+        wait_css_exists(driver, '.pagination', 60)
 
     # Pass selenium cookies to requests (for comparing import speed with requests library)
     #cookies = driver.get_cookies()
