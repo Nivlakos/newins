@@ -41,33 +41,21 @@ def import_page(driver, conn, requests_cookies):
     wait_css_exists(driver, '.pagination')
     for element in driver.find_elements(By.CSS_SELECTOR, '.tender-row .tender-info a'):
         start_time = time.time()
-        #print("------------ BeautifulSoap parser -----------")
-        #response = requests.get('https://rostender.info/' + element.get_attribute('href'), cookies=requests_cookies)
-        #responseHtml = response.content
-        #print(f"GET: {time.time() - start_time} секунд")
-        #print(responseHtml)
-        #soup = BeautifulSoup(responseHtml, 'html.parser')
-        #print("Номер: " + soup.find("div", class_="tender-info-header-number").string)
-        #print("От: " + soup.find("div", class_=".tender-info-header-start_date").string)
-        #print("Место: " + driver.find_element(By.CSS_SELECTOR, ".tender-body__block.n1 .line-clamp").text)
-        #print("Заказчик: " + driver.find_element(By.CSS_SELECTOR, ".tender-body__block.n2 .tender-info__text").text)
-        #print("Заголовок: " + driver.find_element(By.CSS_SELECTOR, ".tender-header .line-clamp").text)
-        #print(f"Всего: {time.time() - start_time} секунд")
 
         print("------------ Selenium parser ------------")
         # Switch to the tender window
         element.click()
         driver.switch_to.window(driver.window_handles[1])
         wait_css_exists(driver, '.tender-info-header-number')
-        #print("Number: " + driver.find_element(By.CSS_SELECTOR, ".tender-info-header-number").text)
+        print("Number: " + driver.find_element(By.CSS_SELECTOR, ".tender-info-header-number").text)
         wait_css_exists(driver, '.tender-info-header-start_date')
-        #print("Date: " + driver.find_element(By.CSS_SELECTOR, ".tender-info-header-start_date").text)
+        print("Date: " + driver.find_element(By.CSS_SELECTOR, ".tender-info-header-start_date").text)
         wait_css_exists(driver, '.tender-body__block.n1 .line-clamp')
-        #print("Delivery Place: " + driver.find_element(By.CSS_SELECTOR, ".tender-body__block.n1 .line-clamp").text)
+        print("Delivery Place: " + driver.find_element(By.CSS_SELECTOR, ".tender-body__block.n1 .line-clamp").text)
         wait_css_exists(driver, '.tender-body__block.n2 .tender-info__text')
-        #print("Customer: " + driver.find_element(By.CSS_SELECTOR, ".tender-body__block.n2 .tender-info__text").text)
+        print("Customer: " + driver.find_element(By.CSS_SELECTOR, ".tender-body__block.n2 .tender-info__text").text)
         wait_css_exists(driver, '.tender-header .line-clamp')
-        #print("Header: " + driver.find_element(By.CSS_SELECTOR, ".tender-header .line-clamp").text)
+        print("Header: " + driver.find_element(By.CSS_SELECTOR, ".tender-header .line-clamp").text)
         
         # Save the tender
         cur = conn.cursor()
@@ -98,11 +86,13 @@ if __name__ == "__main__":
     options.add_argument("--mute-audio");
     options.add_argument("--headless");
     options.add_argument("--no-sandbox");
+
+    #todo: implement session saving to a folder that is replicated to a docker volume. before this is implemented, the micro-service will have to sign in on each restart.
     #options.add_argument(f"--user-data-dir={config.CHROME_USER_DATA_FOLDER}")
     #options.add_argument(f"--profile-directory={config.CHROME_PROFILE_NAME}")
-    #driver = webdriver.Chrome(options=options)
-    
+
     options.set_capability('browserless:token', '35c829e7-df4a-48c4-9d1f-f5939b221ae8')
+    # connect to Chrome engine running in a separate browserless/chrome docker container
     driver = webdriver.Remote(
         command_executor='http://browserless:3000/webdriver',
         options=options
@@ -125,13 +115,6 @@ if __name__ == "__main__":
         # in case login credentials are wrong, the script will fail on the following line in 60 seconds and the micro-service will be restarted (with 'restart: always' in docker-compose.yml)
         wait_css_exists(driver, '.pagination', 60)
 
-    # Pass selenium cookies to requests (for comparing import speed with requests library)
-    #cookies = driver.get_cookies()
-    #requests_cookies = {}
-    #requests_cookies['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15'
-    #for c in cookies:
-    #    requests_cookies[c['name']] = c['value']
-
     # Open DB connection
     conn = psycopg2.connect(
         dbname=config.TENDER_DB_NAME,
@@ -151,12 +134,13 @@ if __name__ == "__main__":
         for row in rows:
 
             # Import first page
-            import_page(driver, conn, requests_cookies)
+            import_page(driver, conn)
 
             # If more pages exists, import them one by one
             while len(driver.find_elements(By.CSS_SELECTOR, 'li.last a')) > 0:
                 find_clickable_css(driver, 'li.last a').click()
-                import_page(driver, conn, requests_cookies)
+                import_page(driver, conn)
 
 
-    #time.sleep(1000)
+    # when all requests are processed, wait 60 seconds before restarting the micro-service
+    time.sleep(60)
