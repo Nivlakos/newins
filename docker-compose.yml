@@ -31,8 +31,9 @@ services:
       restart: always
 
     browserless:
-      image: browserless/chrome:latest
-      platform: linux/amd64
+      image: ghcr.io/browserless/chromium:latest
+      # browserless V2 supports ARM64 as well as AMD64 so there is no longer need to explicitly specify platform key i.e. no need to use slower emulation
+      #platform: linux/amd64
       environment:
         - DEBUG=browserless:*
         - MAX_CONCURRENT_SESSIONS=1
